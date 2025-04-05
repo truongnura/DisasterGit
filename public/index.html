@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thiên Tai</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="index-page">
+    <nav class="nav-bar">
+        <div class="nav-left">
+            <i class="fas fa-globe-asia"></i>
+        </div>
+        <div class="nav-center">
+            <span class="nav-title">Quản Lý Thiên Tai</span>
+        </div>
+        <div class="nav-right" id="navRight">
+            <div class="auth-buttons" id="authButtons">
+                <button class="nav-button signup" onclick="redirectToRegister()">Đăng ký</button>
+                <button class="nav-button login" onclick="redirectToLogin()">Đăng nhập</button>
+            </div>
+            <div class="welcome-container" id="welcomeContainer" style="display: none;">
+                <div class="welcome-text-container">
+                    <span class="welcome-text">Xin chào <span id="usernameDisplay"></span></span>
+                    <div class="user-dropdown">
+                        <a href="#" class="dropdown-item" onclick="showChangePasswordModal()">
+                            <i class="fas fa-key"></i>
+                            Đổi mật khẩu
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" onclick="showUserInfo()">
+                            <i class="fas fa-user"></i>
+                            Thông tin tài khoản
+                        </a>
+                    </div>
+                </div>
+                <button class="logout-button" onclick="logout()">Đăng xuất</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="search-container">
+            <div class="search-left">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm...">
+                <button onclick="searchDisasters()">Tìm kiếm</button>
+            </div>
+            <div class="button-container" id="actionButtons" style="display: none;">
+                <button class="action-button add" onclick="showAddModal()">
+                    <i class="fas fa-plus"></i> Thêm
+                </button>
+                <button class="action-button edit" onclick="showEditModal()">
+                    <i class="fas fa-edit"></i> Sửa
+                </button>
+                <button class="action-button delete" onclick="showDeleteConfirm()">
+                    <i class="fas fa-trash"></i> Xóa
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                        <th>STT</th>
+                <th>Địa chỉ</th>
+                <th>Thời gian</th>
+                <th>Mức độ</th>
+                <th>Loại thiên tai</th>
+            </tr>
+        </thead>
+                <tbody id="data">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal hiển thị báo cáo -->
+    <div id="reportModal" class="report-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Báo cáo thiên tai: <span id="thientaiTitle"></span></h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Thời điểm báo cáo</th>
+                            <th>Thiệt mạng</th>
+                            <th>Bị thương</th>
+                            <th>Trạng thái</th>
+                            <th>Báo cáo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportData">
+                        <!-- Dữ liệu báo cáo sẽ được thêm vào đây -->
+                    </tbody>
+    </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal đổi mật khẩu -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <h3>Đổi mật khẩu</h3>
+            <form id="changePasswordForm">
+                <div class="input-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="currentPassword" placeholder="Mật khẩu hiện tại" required>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="newPassword" placeholder="Mật khẩu mới" required>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Xác nhận</button>
+                    <button type="button" onclick="closeChangePasswordModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal thông tin tài khoản -->
+    <div id="userInfoModal" class="modal">
+        <div class="modal-content">
+            <h3>Thông tin tài khoản</h3>
+            <div id="userInfoContent">
+                <div class="info-row">
+                    <i class="fas fa-user"></i>
+                    <span class="info-label">Họ tên:</span>
+                    <span id="userFullName" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="info-label">Địa chỉ:</span>
+                    <span id="userAddress" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-calendar"></i>
+                    <span class="info-label">Ngày sinh:</span>
+                    <span id="userBirthday" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-envelope"></i>
+                    <span class="info-label">Email:</span>
+                    <span id="userEmail" class="info-value"></span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-phone"></i>
+                    <span class="info-label">Số điện thoại:</span>
+                    <span id="userPhone" class="info-value"></span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" onclick="closeUserInfoModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thêm thiên tai -->
+    <div id="addDisasterModal" class="modal">
+        <div class="modal-content">
+            <h3>Thêm Thiên Tai Mới</h3>
+            <form id="addDisasterForm">
+                <div class="input-container">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="diachi" name="diachi" placeholder="Địa chỉ" required>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-calendar"></i>
+                    <input type="text" id="thoigian" name="thoigian" placeholder="dd/mm/yyyy" required
+                        pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$"
+                        title="Nhập ngày theo định dạng dd/mm/yyyy">
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <select id="mucdo" name="mucdo" required>
+                        <option value="">Chọn mức độ</option>
+                        <option value="Cấp 1: Rủi ro thấp">Cấp 1: Rủi ro thấp</option>
+                        <option value="Cấp 2: Rủi ro trung bình">Cấp 2: Rủi ro trung bình</option>
+                        <option value="Cấp 3: Rủi ro lớn">Cấp 3: Rủi ro lớn</option>
+                        <option value="Cấp 4: Rủi ro rất lớn">Cấp 4: Rủi ro rất lớn</option>
+                        <option value="Cấp 5: Thảm họa">Cấp 5: Thảm họa</option>
+                    </select>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-wind"></i>
+                    <select id="loaithientai" name="loaithientai" required>
+                        <option value="">Chọn loại thiên tai</option>
+                        <option value="Bão">Bão</option>
+                        <option value="Lũ lụt">Lũ lụt</option>
+                        <option value="Hạn hán">Hạn hán</option>
+                        <option value="Sạt lở">Sạt lở</option>
+                        <option value="Động đất">Động đất</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Thêm mới</button>
+                    <button type="button" onclick="closeAddModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal sửa thiên tai -->
+    <div id="editDisasterModal" class="modal">
+        <div class="modal-content">
+            <h3>Sửa Thông Tin Thiên Tai</h3>
+            <form id="editDisasterForm">
+                <input type="hidden" id="editDisasterId">
+                <div class="input-container">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="editDiachi" name="diachi" placeholder="Địa chỉ" required>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-calendar"></i>
+                    <input type="text" id="editThoigian" name="thoigian" placeholder="dd/mm/yyyy" required
+                        pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$"
+                        title="Nhập ngày theo định dạng dd/mm/yyyy">
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <select id="editMucdo" name="mucdo" required>
+                        <option value="">Chọn mức độ</option>
+                        <option value="Cấp 1: Rủi ro thấp">Cấp 1: Rủi ro thấp</option>
+                        <option value="Cấp 2: Rủi ro trung bình">Cấp 2: Rủi ro trung bình</option>
+                        <option value="Cấp 3: Rủi ro lớn">Cấp 3: Rủi ro lớn</option>
+                        <option value="Cấp 4: Rủi ro rất lớn">Cấp 4: Rủi ro rất lớn</option>
+                        <option value="Cấp 5: Thảm họa">Cấp 5: Thảm họa</option>
+                    </select>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-wind"></i>
+                    <select id="editLoaithientai" name="loaithientai" required>
+                        <option value="">Chọn loại thiên tai</option>
+                        <option value="Bão">Bão</option>
+                        <option value="Lũ lụt">Lũ lụt</option>
+                        <option value="Hạn hán">Hạn hán</option>
+                        <option value="Sạt lở">Sạt lở</option>
+                        <option value="Động đất">Động đất</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit">Cập nhật</button>
+                    <button type="button" onclick="closeEditModal()">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal xác nhận xóa -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content">
+            <h3>Xác nhận xóa</h3>
+            <p id="deleteConfirmMessage" style="text-align: center; margin: 20px 0;">Bạn có chắc chắn muốn xóa thiên tai
+                này?</p>
+            <input type="hidden" id="deleteDisasterId">
+            <div class="modal-buttons">
+                <button onclick="confirmDelete()" style="background: #f44336;">Xác nhận</button>
+                <button onclick="closeDeleteConfirmModal()" type="button">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            checkLoginState();
+            fetchDisasters();
+        };
+
+        async function fetchDisasters() {
+            const res = await fetch('http://192.166.13.100:3000/disasters');
+            const data = await res.json();
+            let rows = '';
+            data.forEach((d, index) => {
+                const date = new Date(d.thoigian);
+                const formattedDate = date.toLocaleDateString('vi-VN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+
+                rows += `<tr onclick="showReport('${d.ID}')" style="cursor: pointer;">
+                    <td>${index + 1}</td>
+                    <td>${d.diachi}</td>
+                    <td>${formattedDate}</td>
+                    <td>${d.mucdo}</td>
+                    <td>${d.loaithientai}</td>
+                </tr>`;
+            });
+            document.getElementById('data').innerHTML = rows;
+        }
+
+        let isEditMode = false;
+        let isDeleteMode = false;
+        let selectedDisasterId = null;
+
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translateX(-50%)';
+            messageDiv.style.padding = '15px 30px';
+            messageDiv.style.borderRadius = '5px';
+            messageDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.fontSize = '16px';
+
+            // Thiết lập màu sắc dựa trên loại thông báo
+            switch (type) {
+                case 'success':
+                    messageDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.9)';
+                    messageDiv.style.color = '#fff';
+                    break;
+                case 'error':
+                    messageDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.9)';
+                    messageDiv.style.color = '#fff';
+                    break;
+                default:
+                    messageDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+                    messageDiv.style.color = '#333';
+            }
+
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        function showEditModal() {
+            isEditMode = true;
+            // Tạo và hiển thị thông báo
+            let messageDiv = document.createElement('div');
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            messageDiv.style.color = '#333';
+            messageDiv.style.padding = '25px 40px';
+            messageDiv.style.borderRadius = '10px';
+            messageDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.fontSize = '20px';
+            messageDiv.style.fontWeight = '500';
+            messageDiv.style.minWidth = '400px';
+            messageDiv.style.border = '1px solid rgba(0,0,0,0.1)';
+            messageDiv.style.animation = 'fadeInScale 0.3s ease-out';
+            messageDiv.textContent = 'Vui lòng chọn một thiên tai để sửa';
+
+            // Thêm style cho animation
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes fadeInScale {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+                styleSheet.remove();
+            }, 750);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editDisasterModal').classList.remove('show');
+            document.getElementById('editDisasterForm').reset();
+            isEditMode = false;
+        }
+
+        async function showReport(thientaiId) {
+            if (isDeleteMode) {
+                selectedDisasterId = thientaiId;
+                document.getElementById('deleteDisasterId').value = thientaiId;
+                document.getElementById('deleteConfirmModal').classList.add('show');
+                return;
+            }
+            if (isEditMode) {
+                // Nếu đang ở chế độ sửa, lấy thông tin thiên tai và hiển thị form sửa
+                try {
+                    const response = await fetch(`/disasters/${thientaiId}`);
+                    const disaster = await response.json();
+
+                    // Chuyển đổi ngày từ ISO string sang dd/mm/yyyy
+                    const date = new Date(disaster.thoigian);
+                    const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+
+                    // Điền thông tin vào form
+                    document.getElementById('editDisasterId').value = disaster.ID;
+                    document.getElementById('editDiachi').value = disaster.diachi;
+                    document.getElementById('editThoigian').value = formattedDate;
+                    document.getElementById('editMucdo').value = disaster.mucdo;
+                    document.getElementById('editLoaithientai').value = disaster.loaithientai;
+
+                    // Hiển thị modal
+                    document.getElementById('editDisasterModal').classList.add('show');
+                } catch (error) {
+                    console.error('Lỗi khi lấy thông tin thiên tai:', error);
+                    alert('Có lỗi xảy ra khi lấy thông tin thiên tai');
+                }
+                return;
+            }
+
+            try {
+                console.log('Đang lấy thông tin cho thiên tai ID:', thientaiId);
+                const response = await fetch(`/reports/${thientaiId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Không thể lấy thông tin thiên tai');
+                }
+
+                const thientai = data.data.thientai;
+                const reports = data.data.baocao;
+
+                // Cập nhật tiêu đề modal với thông tin đầy đủ
+                document.querySelector('#reportModal h2').innerHTML = `
+                    Báo cáo thiên tai: ${thientai.loaithientai}<br>
+                    <div style="font-size: 0.9em; margin-top: 10px;">
+                        <i class="fas fa-map-marker-alt"></i> ${thientai.diachi} | 
+                        <i class="fas fa-calendar"></i> ${new Date(thientai.thoigian).toLocaleDateString('vi-VN')} | 
+                        <i class="fas fa-exclamation-circle"></i> ${thientai.mucdo}
+                    </div>`;
+                
+                // Thêm ID thiên tai vào dataset
+                document.querySelector('#reportModal h2').dataset.thientaiId = thientai.ID;
+
+                let reportContent = '';
+
+                reports.forEach(report => {
+                    reportContent += `
+                            <tr class="report-row" style="cursor: pointer; transition: background-color 0.3s;" 
+                                onmouseover="this.style.backgroundColor='#e3f2fd'" 
+                                onmouseout="this.style.backgroundColor=''"
+                                onclick="handleReportRowClick(this, '${report._id}', '${encodeURIComponent(JSON.stringify(report))}')">
+                                <td>${new Date(report.thoigian).toLocaleString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</td>
+                                <td>${report.thietmang}</td>
+                                <td>${report.bithuong}</td>
+                                <td>${report.trangthai}</td>
+                                <td>${report.linkbaocao ? `<a href="${report.linkbaocao}" target="_blank" onclick="event.stopPropagation()">Xem báo cáo</a>` : 'Không có'}</td>
+                            </tr>`;
+                });
+
+                // Thêm các nút chức năng ở cuối bảng nếu đã đăng nhập
+                if (localStorage.getItem('username')) {
+                    reportContent += `
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px;">
+                                    <div style="display: flex; justify-content: center; gap: 15px;">
+                                        <button onclick="showAddReportModal('${thientai.ID}')" class="action-button add">
+                                            <i class="fas fa-plus"></i> Thêm báo cáo
+                                        </button>
+                                        <button onclick="showEditReportMode()" class="action-button edit">
+                                            <i class="fas fa-edit"></i> Sửa báo cáo
+                                        </button>
+                                        <button onclick="showDeleteReportMode()" class="action-button delete">
+                                            <i class="fas fa-trash"></i> Xóa báo cáo
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                }
+
+
+                document.getElementById('reportData').innerHTML = reportContent;
+                document.getElementById('reportModal').style.display = 'block';
+
+                // Reset trạng thái
+                window.isEditReportMode = false;
+                window.isDeleteReportMode = false;
+
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
+                alert('Có lỗi xảy ra khi lấy thông tin báo cáo: ' + error.message);
+            }
+        }
+
+        function showAddReportModal(thientaiId) {
+            // Tạo modal thêm báo cáo
+            const modalContent = `
+                <div class="modal-content">
+                    <h3 style="color: white;">Thêm Báo Cáo Mới</h3>
+                    <form id="addReportForm">
+                        <input type="hidden" id="reportThientaiId" value="${thientaiId}">
+                        <div class="input-container">
+                            <i class="fas fa-skull"></i>
+                            <input type="number" id="thietmang" name="thietmang" placeholder="Số người thiệt mạng" required min="0">
+                        </div>
+                        <div class="input-container">
+                            <i class="fas fa-user-injured"></i>
+                            <input type="number" id="bithuong" name="bithuong" placeholder="Số người bị thương" required min="0">
+                        </div>
+                        <div class="input-container">
+                            <i class="fas fa-info-circle"></i>
+                            <select id="trangthai" name="trangthai" required>
+                                <option value="">Chọn trạng thái</option>
+                                <option value="Đang diễn ra">Đang diễn ra</option>
+                                <option value="Đã kết thúc">Đã kết thúc</option>
+                            </select>
+                        </div>
+                        <div class="input-container">
+                            <i class="fas fa-link"></i>
+                            <input type="url" id="linkbaocao" name="linkbaocao" placeholder="Link báo cáo (không bắt buộc)">
+                        </div>
+                        <div class="modal-buttons">
+                            <button type="submit" style="width: 40%; margin: 0 15px;">Thêm báo cáo</button>
+                            <button type="button" onclick="closeAddReportModal()" style="width: 40%; margin: 0 15px;">Hủy</button>
+                        </div>
+                    </form>
+                </div>`;
+
+            const addReportModal = document.createElement('div');
+            addReportModal.id = 'addReportModal';
+            addReportModal.className = 'modal';
+            addReportModal.innerHTML = modalContent;
+
+            // Thêm style cho modal
+            addReportModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            const modalContentDiv = addReportModal.querySelector('.modal-content');
+            modalContentDiv.style.backgroundColor = '#2c3338';
+            modalContentDiv.style.color = 'white';
+            modalContentDiv.style.padding = '30px';
+            modalContentDiv.style.borderRadius = '10px';
+            modalContentDiv.style.width = '400px';
+
+            // Style cho input containers
+            const inputContainers = addReportModal.querySelectorAll('.input-container');
+            inputContainers.forEach(container => {
+                container.style.marginBottom = '20px';
+                container.style.position = 'relative';
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+            });
+
+            // Style cho inputs và select
+            const inputs = addReportModal.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.style.width = '100%';
+                input.style.padding = '10px 40px';
+                input.style.backgroundColor = '#3b4148';
+                input.style.border = 'none';
+                input.style.borderRadius = '4px';
+                input.style.color = 'white';
+                input.style.fontSize = '16px';
+            });
+
+            // Style cho icons
+            const icons = addReportModal.querySelectorAll('.fas');
+            icons.forEach(icon => {
+                icon.style.position = 'absolute';
+                icon.style.left = '12px';
+                icon.style.color = '#606468';
+            });
+
+            document.body.appendChild(addReportModal);
+
+            // Thêm event listener cho form
+            document.getElementById('addReportForm').addEventListener('submit', submitReport);
+
+            // Hiển thị modal
+            addReportModal.classList.add('show');
+        }
+
+        function closeAddReportModal() {
+            const modal = document.getElementById('addReportModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function submitReport(event) {
+            event.preventDefault();
+
+            const formData = {
+                IDthientai: document.getElementById('reportThientaiId').value,
+                thietmang: parseInt(document.getElementById('thietmang').value),
+                bithuong: parseInt(document.getElementById('bithuong').value),
+                trangthai: document.getElementById('trangthai').value,
+                linkbaocao: document.getElementById('linkbaocao').value || null
+            };
+
+            try {
+                const response = await fetch('/reports', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAddReportSuccess('Thêm báo cáo thành công!');
+                    closeAddReportModal();
+                    // Cập nhật lại báo cáo
+                    showReport(formData.IDthientai);
+                } else {
+                    showAddReportError(data.message || 'Có lỗi xảy ra khi thêm báo cáo!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi thêm báo cáo:', error);
+                showAddReportError('Đã xảy ra lỗi khi kết nối với máy chủ!');
+            }
+        }
+
+        function showAddReportSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.position = 'fixed';
+            successDiv.style.top = '20px';
+            successDiv.style.left = '50%';
+            successDiv.style.transform = 'translateX(-50%)';
+            successDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.9)';
+            successDiv.style.color = '#fff';
+            successDiv.style.padding = '15px 30px';
+            successDiv.style.borderRadius = '5px';
+            successDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            successDiv.style.zIndex = '9999';
+            successDiv.style.textAlign = 'center';
+            successDiv.style.fontSize = '16px';
+
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        function showAddReportError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.top = '20px';
+            errorDiv.style.left = '50%';
+            errorDiv.style.transform = 'translateX(-50%)';
+            errorDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.9)';
+            errorDiv.style.color = '#fff';
+            errorDiv.style.padding = '15px 30px';
+            errorDiv.style.borderRadius = '5px';
+            errorDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            errorDiv.style.zIndex = '9999';
+            errorDiv.style.textAlign = 'center';
+            errorDiv.style.fontSize = '16px';
+
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
+        }
+
+        // Đóng modal khi click vào nút X
+        document.querySelector('.close').onclick = function () {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        // Đóng modal khi click bên ngoài modal
+        window.onclick = function (event) {
+            const modal = document.getElementById('reportModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function searchDisasters() {
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let rows = document.querySelectorAll("tbody tr");
+            let visibleIndex = 1;
+
+            rows.forEach(row => {
+                if (row.innerText.toLowerCase().includes(searchTerm)) {
+                    row.style.display = '';
+                    row.cells[0].textContent = visibleIndex++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function showChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('show');
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('show');
+        }
+
+        function showUserInfo() {
+            const username = localStorage.getItem('username');
+            if (!username) return;
+
+            // Gọi API để lấy thông tin người dùng
+            fetch(`/user-info/${username}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('userFullName').textContent = data.info.hoten;
+                        document.getElementById('userAddress').textContent = data.info.diachi;
+                        document.getElementById('userBirthday').textContent = new Date(data.info.ngaysinh).toLocaleDateString('vi-VN');
+                        document.getElementById('userEmail').textContent = data.info.email;
+                        document.getElementById('userPhone').textContent = data.info.sdt;
+                        document.getElementById('userInfoModal').classList.add('show');
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi lấy thông tin người dùng:', error);
+                });
+        }
+
+        function closeUserInfoModal() {
+            document.getElementById('userInfoModal').classList.remove('show');
+        }
+
+        // Các hàm hiển thị thông báo đặc biệt cho chức năng đổi mật khẩu
+        function showPasswordErrorModal(title, message) {
+            const modal = document.getElementById('changePasswordModal');
+
+            // Tạo thông báo lỗi
+            let errorDiv = document.getElementById('passwordErrorMessage');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'passwordErrorMessage';
+                errorDiv.style.color = '#f44336';
+                errorDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                errorDiv.style.padding = '10px';
+                errorDiv.style.borderRadius = '5px';
+                errorDiv.style.marginBottom = '15px';
+                errorDiv.style.textAlign = 'center';
+                errorDiv.style.display = 'none';
+
+                // Chèn vào đầu form
+                const form = document.getElementById('changePasswordForm');
+                form.insertBefore(errorDiv, form.firstChild);
+            }
+
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+
+            // Tự động ẩn thông báo sau 3 giây
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function showPasswordSuccessModal(message) {
+            const modal = document.getElementById('changePasswordModal');
+
+            // Tạo thông báo thành công
+            let successDiv = document.getElementById('passwordSuccessMessage');
+            if (!successDiv) {
+                successDiv = document.createElement('div');
+                successDiv.id = 'passwordSuccessMessage';
+                successDiv.style.color = '#4CAF50';
+                successDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                successDiv.style.padding = '10px';
+                successDiv.style.borderRadius = '5px';
+                successDiv.style.marginBottom = '15px';
+                successDiv.style.textAlign = 'center';
+                successDiv.style.display = 'none';
+
+                // Chèn vào đầu form
+                const form = document.getElementById('changePasswordForm');
+                form.insertBefore(successDiv, form.firstChild);
+            }
+
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+
+            // Tự động ẩn thông báo và đóng modal sau 2 giây
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                closeChangePasswordModal();
+            }, 2000);
+        }
+
+        // Xử lý form đổi mật khẩu
+        document.getElementById('changePasswordForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Kiểm tra các trường dữ liệu
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showPasswordErrorModal('Lỗi', 'Vui lòng nhập đầy đủ thông tin!');
+                return;
+            }
+
+            // Kiểm tra mật khẩu mới và xác nhận mật khẩu
+            if (newPassword !== confirmPassword) {
+                showPasswordErrorModal('Lỗi', 'Mật khẩu mới không khớp với xác nhận mật khẩu!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: localStorage.getItem('username'),
+                        currentPassword,
+                        newPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showPasswordSuccessModal('Đổi mật khẩu thành công!');
+                    // Xóa dữ liệu của form
+                    document.getElementById('changePasswordForm').reset();
+                } else {
+                    // Hiển thị thông báo lỗi cụ thể từ server
+                    showPasswordErrorModal('Lỗi', data.message || 'Có lỗi xảy ra khi đổi mật khẩu!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi gửi yêu cầu đổi mật khẩu:', error);
+                showPasswordErrorModal('Lỗi', 'Đã xảy ra lỗi khi kết nối với máy chủ!');
+            }
+        });
+
+        function showAddModal() {
+            document.getElementById('addDisasterModal').classList.add('show');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addDisasterModal').classList.remove('show');
+            document.getElementById('addDisasterForm').reset();
+        }
+
+        // Các hàm hiển thị thông báo cho form thêm thiên tai
+        function showAddDisasterError(message) {
+            const modal = document.getElementById('addDisasterModal');
+
+            let errorDiv = document.getElementById('addDisasterError');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'addDisasterError';
+                errorDiv.style.color = '#f44336';
+                errorDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                errorDiv.style.padding = '10px';
+                errorDiv.style.borderRadius = '5px';
+                errorDiv.style.marginBottom = '15px';
+                errorDiv.style.textAlign = 'center';
+                errorDiv.style.display = 'none';
+
+                const form = document.getElementById('addDisasterForm');
+                form.insertBefore(errorDiv, form.firstChild);
+            }
+
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function showAddDisasterSuccess(message) {
+            const modal = document.getElementById('addDisasterModal');
+
+            let successDiv = document.getElementById('addDisasterSuccess');
+            if (!successDiv) {
+                successDiv = document.createElement('div');
+                successDiv.id = 'addDisasterSuccess';
+                successDiv.style.color = '#4CAF50';
+                successDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                successDiv.style.padding = '10px';
+                successDiv.style.borderRadius = '5px';
+                successDiv.style.marginBottom = '15px';
+                successDiv.style.textAlign = 'center';
+                successDiv.style.display = 'none';
+
+                const form = document.getElementById('addDisasterForm');
+                form.insertBefore(successDiv, form.firstChild);
+            }
+
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                closeAddModal();
+            }, 2000);
+        }
+
+        // Xử lý form thêm thiên tai
+        document.getElementById('addDisasterForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const thoigianValue = document.getElementById('thoigian').value;
+
+            // Kiểm tra định dạng ngày
+            if (!/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(thoigianValue)) {
+                showAddDisasterError('Vui lòng nhập ngày theo định dạng dd/mm/yyyy');
+                return;
+            }
+
+            // Chuyển đổi định dạng dd/mm/yyyy sang yyyy-mm-dd cho API
+            const [day, month, year] = thoigianValue.split('/');
+            const formattedDate = `${year}-${month}-${day}`;
+
+            const formData = {
+                diachi: document.getElementById('diachi').value,
+                thoigian: formattedDate,
+                mucdo: document.getElementById('mucdo').value,
+                loaithientai: document.getElementById('loaithientai').value
+            };
+
+            try {
+                const response = await fetch('/disasters', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAddDisasterSuccess('Thêm thiên tai thành công!');
+                    document.getElementById('addDisasterForm').reset();
+                    fetchDisasters(); // Cập nhật lại danh sách
+                } else {
+                    showAddDisasterError(data.message || 'Có lỗi xảy ra khi thêm thiên tai!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi thêm thiên tai:', error);
+                showAddDisasterError('Đã xảy ra lỗi khi kết nối với máy chủ!');
+            }
+        });
+
+        // Đóng modal khi click bên ngoài
+        window.onclick = function (event) {
+            const addModal = document.getElementById('addDisasterModal');
+            if (event.target == addModal) {
+                closeAddModal();
+            }
+        }
+
+        // Xử lý form sửa thiên tai
+        document.getElementById('editDisasterForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const thoigianValue = document.getElementById('editThoigian').value;
+
+            // Kiểm tra định dạng ngày
+            if (!/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(thoigianValue)) {
+                showEditDisasterError('Vui lòng nhập ngày theo định dạng dd/mm/yyyy');
+                return;
+            }
+
+            // Chuyển đổi định dạng dd/mm/yyyy sang yyyy-mm-dd cho API
+            const [day, month, year] = thoigianValue.split('/');
+            const formattedDate = `${year}-${month}-${day}`;
+
+            const formData = {
+                ID: document.getElementById('editDisasterId').value,
+                diachi: document.getElementById('editDiachi').value,
+                thoigian: formattedDate,
+                mucdo: document.getElementById('editMucdo').value,
+                loaithientai: document.getElementById('editLoaithientai').value
+            };
+
+            try {
+                const response = await fetch(`/disasters/${formData.ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showEditDisasterSuccess('Cập nhật thiên tai thành công!');
+                    document.getElementById('editDisasterForm').reset();
+                    fetchDisasters(); // Cập nhật lại danh sách
+                } else {
+                    showEditDisasterError(data.message || 'Có lỗi xảy ra khi cập nhật thiên tai!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi cập nhật thiên tai:', error);
+                showEditDisasterError('Đã xảy ra lỗi khi kết nối với máy chủ!');
+            }
+        });
+
+        // Các hàm hiển thị thông báo cho form sửa thiên tai
+        function showEditDisasterError(message) {
+            const modal = document.getElementById('editDisasterModal');
+
+            let errorDiv = document.getElementById('editDisasterError');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'editDisasterError';
+                errorDiv.style.color = '#f44336';
+                errorDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+                errorDiv.style.padding = '10px';
+                errorDiv.style.borderRadius = '5px';
+                errorDiv.style.marginBottom = '15px';
+                errorDiv.style.textAlign = 'center';
+                errorDiv.style.display = 'none';
+
+                const form = document.getElementById('editDisasterForm');
+                form.insertBefore(errorDiv, form.firstChild);
+            }
+
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function showEditDisasterSuccess(message) {
+            const modal = document.getElementById('editDisasterModal');
+
+            let successDiv = document.getElementById('editDisasterSuccess');
+            if (!successDiv) {
+                successDiv = document.createElement('div');
+                successDiv.id = 'editDisasterSuccess';
+                successDiv.style.color = '#4CAF50';
+                successDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                successDiv.style.padding = '10px';
+                successDiv.style.borderRadius = '5px';
+                successDiv.style.marginBottom = '15px';
+                successDiv.style.textAlign = 'center';
+                successDiv.style.display = 'none';
+
+                const form = document.getElementById('editDisasterForm');
+                form.insertBefore(successDiv, form.firstChild);
+            }
+
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+                closeEditModal();
+            }, 750);
+        }
+
+        function showDeleteConfirm() {
+            isDeleteMode = true;
+            // Tạo và hiển thị thông báo
+            let messageDiv = document.createElement('div');
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            messageDiv.style.color = '#333';
+            messageDiv.style.padding = '25px 40px';
+            messageDiv.style.borderRadius = '10px';
+            messageDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.fontSize = '20px';
+            messageDiv.style.fontWeight = '500';
+            messageDiv.style.minWidth = '400px';
+            messageDiv.style.border = '1px solid rgba(0,0,0,0.1)';
+            messageDiv.style.animation = 'fadeInScale 0.3s ease-out';
+            messageDiv.textContent = 'Vui lòng chọn một thiên tai để xóa';
+
+            // Thêm style cho animation
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes fadeInScale {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+                styleSheet.remove();
+            }, 750);
+        }
+
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').classList.remove('show');
+            isDeleteMode = false;
+            selectedDisasterId = null;
+        }
+
+        async function confirmDelete() {
+            try {
+                const response = await fetch(`/disasters/${selectedDisasterId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showDeleteSuccess('Xóa thiên tai thành công!');
+                    closeDeleteConfirmModal();
+                    fetchDisasters(); // Cập nhật lại danh sách
+                } else {
+                    showDeleteError(data.message || 'Có lỗi xảy ra khi xóa thiên tai!');
+                }
+            } catch (error) {
+                console.error('Lỗi khi xóa thiên tai:', error);
+                showDeleteError('Đã xảy ra lỗi khi kết nối với máy chủ!');
+            }
+        }
+
+        function showDeleteSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.position = 'fixed';
+            successDiv.style.top = '20px';
+            successDiv.style.left = '50%';
+            successDiv.style.transform = 'translateX(-50%)';
+            successDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.9)';
+            successDiv.style.color = '#fff';
+            successDiv.style.padding = '15px 30px';
+            successDiv.style.borderRadius = '5px';
+            successDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            successDiv.style.zIndex = '9999';
+            successDiv.style.textAlign = 'center';
+            successDiv.style.fontSize = '16px';
+
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        function showDeleteError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.top = '20px';
+            errorDiv.style.left = '50%';
+            errorDiv.style.transform = 'translateX(-50%)';
+            errorDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.9)';
+            errorDiv.style.color = '#fff';
+            errorDiv.style.padding = '15px 30px';
+            errorDiv.style.borderRadius = '5px';
+            errorDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            errorDiv.style.zIndex = '9999';
+            errorDiv.style.textAlign = 'center';
+            errorDiv.style.fontSize = '16px';
+
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
+        }
+
+        // Thêm các hàm xử lý sửa và xóa báo cáo
+        function showEditReportMode() {
+            window.isEditReportMode = true;
+            window.isDeleteReportMode = false;
+
+            // Tạo và hiển thị thông báo
+            let messageDiv = document.createElement('div');
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            messageDiv.style.color = '#333';
+            messageDiv.style.padding = '25px 40px';
+            messageDiv.style.borderRadius = '10px';
+            messageDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.fontSize = '20px';
+            messageDiv.style.fontWeight = '500';
+            messageDiv.style.minWidth = '400px';
+            messageDiv.style.border = '1px solid rgba(0,0,0,0.1)';
+            messageDiv.style.animation = 'fadeInScale 0.3s ease-out';
+            messageDiv.textContent = 'Vui lòng chọn một báo cáo để sửa';
+
+            // Thêm style cho animation
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes fadeInScale {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+                styleSheet.remove();
+            }, 750);
+        }
+
+        function showDeleteReportMode() {
+            window.isDeleteReportMode = true;
+            window.isEditReportMode = false;
+
+            // Tạo và hiển thị thông báo
+            let messageDiv = document.createElement('div');
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            messageDiv.style.color = '#333';
+            messageDiv.style.padding = '25px 40px';
+            messageDiv.style.borderRadius = '10px';
+            messageDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.fontSize = '20px';
+            messageDiv.style.fontWeight = '500';
+            messageDiv.style.minWidth = '400px';
+            messageDiv.style.border = '1px solid rgba(0,0,0,0.1)';
+            messageDiv.style.animation = 'fadeInScale 0.3s ease-out';
+            messageDiv.textContent = 'Vui lòng chọn một báo cáo để xóa';
+
+            // Thêm style cho animation
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                @keyframes fadeInScale {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+                styleSheet.remove();
+            }, 750);
+        }
+
+        function handleReportRowClick(row, reportId, reportDataStr) {
+            if (window.isEditReportMode) {
+                // Bỏ highlight tất cả các hàng khác
+                document.querySelectorAll('.report-row').forEach(r => r.style.backgroundColor = '');
+                // Highlight hàng được chọn
+                row.style.backgroundColor = '#e3f2fd';
+
+                const reportData = JSON.parse(decodeURIComponent(reportDataStr));
+                // Hiển thị form sửa báo cáo
+                const modalContent = `
+                    <div class="modal-content" style="background-color: white; color: #333; padding: 30px; border-radius: 10px; width: 400px; animation: fadeInScale 0.3s ease-out;">
+                        <h3 style="margin-bottom: 20px; text-align: center;">Sửa Báo Cáo</h3>
+                        <form id="editReportForm">
+                            <input type="hidden" id="editReportId" value="${reportId}">
+                            <div class="input-container" style="margin-bottom: 20px; position: relative;">
+                                <i class="fas fa-calendar" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #606468;"></i>
+                                <input type="datetime-local" id="editThoigian" name="thoigian" value="${new Date(reportData.thoigian).toISOString().slice(0, 16)}" required
+                                    style="width: 100%; padding: 10px 40px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; color: #333; font-size: 16px;">
+                            </div>
+                            <div class="input-container" style="margin-bottom: 20px; position: relative;">
+                                <i class="fas fa-skull" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #606468;"></i>
+                                <input type="number" id="editThietmang" name="thietmang" value="${reportData.thietmang}" required min="0"
+                                    style="width: 100%; padding: 10px 40px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; color: #333; font-size: 16px;"
+                                    placeholder="Số người thiệt mạng">
+                            </div>
+                            <div class="input-container" style="margin-bottom: 20px; position: relative;">
+                                <i class="fas fa-user-injured" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #606468;"></i>
+                                <input type="number" id="editBithuong" name="bithuong" value="${reportData.bithuong}" required min="0"
+                                    style="width: 100%; padding: 10px 40px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; color: #333; font-size: 16px;"
+                                    placeholder="Số người bị thương">
+                            </div>
+                            <div class="input-container" style="margin-bottom: 20px; position: relative;">
+                                <i class="fas fa-info-circle" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #606468;"></i>
+                                <select id="editTrangthai" name="trangthai" required
+                                    style="width: 100%; padding: 10px 40px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; color: #333; font-size: 16px;">
+                                    <option value="Đang diễn ra" ${reportData.trangthai === 'Đang diễn ra' ? 'selected' : ''}>Đang diễn ra</option>
+                                    <option value="Đã kết thúc" ${reportData.trangthai === 'Đã kết thúc' ? 'selected' : ''}>Đã kết thúc</option>
+                                </select>
+                            </div>
+                            <div class="input-container" style="margin-bottom: 20px; position: relative;">
+                                <i class="fas fa-link" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #606468;"></i>
+                                <input type="url" id="editLinkbaocao" name="linkbaocao" value="${reportData.linkbaocao || ''}"
+                                    style="width: 100%; padding: 10px 40px; background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; color: #333; font-size: 16px;"
+                                    placeholder="Link báo cáo (không bắt buộc)">
+                            </div>
+                            <div class="modal-buttons" style="display: flex; justify-content: center; gap: 30px;">
+                                <button type="submit" style="width: 40%; padding: 10px; border: none; border-radius: 4px; background-color: #4CAF50; color: white; cursor: pointer; transition: background-color 0.3s;">Cập nhật</button>
+                                <button type="button" onclick="closeEditReportModal()" style="width: 40%; padding: 10px; border: none; border-radius: 4px; background-color: #666; color: white; cursor: pointer; transition: background-color 0.3s;">Hủy</button>
+                            </div>
+                        </form>
+                    </div>`;
+
+                const editReportModal = document.createElement('div');
+                editReportModal.id = 'editReportModal';
+                editReportModal.className = 'modal';
+                editReportModal.style.display = 'block';
+                editReportModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                editReportModal.innerHTML = modalContent;
+
+                // Thêm style cho animation
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = `
+                    @keyframes fadeInScale {
+                        from {
+                            opacity: 0;
+                            transform: scale(0.8);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
+                    }
+                    
+                    #editReportModal .modal-content {
+                        transform-origin: center;
+                    }
+                    
+                    #editReportModal button:hover {
+                        opacity: 0.9;
+                    }
+                `;
+                document.head.appendChild(styleSheet);
+
+                document.body.appendChild(editReportModal);
+
+                // Thêm event listener cho form
+                document.getElementById('editReportForm').addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const formData = {
+                        thoigian: document.getElementById('editThoigian').value,
+                        thietmang: parseInt(document.getElementById('editThietmang').value),
+                        bithuong: parseInt(document.getElementById('editBithuong').value),
+                        trangthai: document.getElementById('editTrangthai').value,
+                        linkbaocao: document.getElementById('editLinkbaocao').value || null
+                    };
+
+                    try {
+                        const response = await fetch(`/reports/${reportId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            showMessage('Cập nhật báo cáo thành công!', 'success');
+                            closeEditReportModal();
+                            styleSheet.remove();
+                            // Cập nhật lại danh sách báo cáo
+                            const thientaiId = document.querySelector('#reportModal h2').dataset.thientaiId;
+                            showReport(thientaiId);
+                        } else {
+                            showMessage(data.message || 'Có lỗi xảy ra khi cập nhật báo cáo!', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi cập nhật báo cáo:', error);
+                        showMessage('Đã xảy ra lỗi khi kết nối với máy chủ!', 'error');
+                    }
+                });
+
+                window.isEditReportMode = false;
+            } else if (window.isDeleteReportMode) {
+                // Bỏ highlight tất cả các hàng khác
+                document.querySelectorAll('.report-row').forEach(r => r.style.backgroundColor = '');
+                // Highlight hàng được chọn
+                row.style.backgroundColor = '#ffebee';
+                showDeleteReportConfirm(reportId);
+                window.isDeleteReportMode = false;
+            }
+        }
+
+        function closeEditReportModal() {
+            const modal = document.getElementById('editReportModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function showDeleteReportConfirm(reportId) {
+            const confirmDiv = document.createElement('div');
+            confirmDiv.id = 'deleteReportConfirmDialog';
+            confirmDiv.style.position = 'fixed';
+            confirmDiv.style.top = '50%';
+            confirmDiv.style.left = '50%';
+            confirmDiv.style.transform = 'translate(-50%, -50%)';
+            confirmDiv.style.backgroundColor = 'white';
+            confirmDiv.style.padding = '30px';
+            confirmDiv.style.borderRadius = '10px';
+            confirmDiv.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+            confirmDiv.style.zIndex = '1000';
+            confirmDiv.style.minWidth = '300px';
+            confirmDiv.style.textAlign = 'center';
+            confirmDiv.style.animation = 'fadeInScale 0.3s ease-out';
+
+            confirmDiv.innerHTML = `
+                <h3 style="margin-bottom: 20px; color: #333;">Xác nhận xóa</h3>
+                <p style="margin-bottom: 30px; color: #666;">Bạn có chắc chắn muốn xóa báo cáo này không?</p>
+                <div style="display: flex; justify-content: center; gap: 20px;">
+                    <button onclick="deleteReport('${reportId}')" 
+                            style="padding: 10px 25px; background-color: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s;">
+                        Xóa
+                    </button>
+                    <button onclick="closeDeleteReportConfirm()" 
+                            style="padding: 10px 25px; background-color: #9e9e9e; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s;">
+                        Hủy
+                    </button>
+                </div>
+            `;
+
+            // Thêm style cho animation
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'deleteReportConfirmStyle';
+            styleSheet.textContent = `
+                @keyframes fadeInScale {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.8);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(styleSheet);
+
+            // Thêm overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'deleteReportConfirmOverlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            overlay.style.zIndex = '999';
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(confirmDiv);
+
+            // Xóa overlay khi click vào nút Hủy
+            overlay.onclick = () => {
+                closeDeleteReportConfirm();
+            };
+        }
+
+        function closeDeleteReportConfirm() {
+            document.getElementById('deleteReportConfirmOverlay')?.remove();
+            document.getElementById('deleteReportConfirmDialog')?.remove();
+            document.getElementById('deleteReportConfirmStyle')?.remove();
+        }
+
+        async function deleteReport(reportId) {
+            try {
+                console.log('Đang xóa báo cáo với ID:', reportId);
+                const response = await fetch(`/reports/${reportId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Đóng hộp thoại xác nhận trước
+                    closeDeleteReportConfirm();
+                    
+                    // Lấy ID thiên tai trước khi cập nhật giao diện
+                    const thientaiId = document.querySelector('#reportModal h2').dataset.thientaiId;
+                    console.log('Cập nhật báo cáo cho thiên tai ID:', thientaiId);
+                    
+                    // Hiển thị thông báo thành công
+                    showMessage('Xóa báo cáo thành công!', 'success');
+                    
+                    // Gọi API để lấy danh sách báo cáo mới
+                    const reportsResponse = await fetch(`/reports/${thientaiId}`);
+                    const reportsData = await reportsResponse.json();
+                    
+                    if (reportsData.success) {
+                        // Cập nhật lại bảng báo cáo
+                        const reportContent = document.querySelector('#reportContent');
+                        if (reportsData.data.baocao.length === 0) {
+                            reportContent.innerHTML = `
+                                <div class="no-reports">
+                                    <p>Chưa có báo cáo nào cho thiên tai này.</p>
+                                    <button onclick="showAddReportModal()" class="add-report-btn">
+                                        <i class="fas fa-plus"></i> Thêm Báo Cáo
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            let reportsHtml = `
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Thời Gian</th>
+                                            <th>Tử Vong</th>
+                                            <th>Bị Thương</th>
+                                            <th>Trạng Thái</th>
+                                            <th>Báo Cáo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+                            
+                            reportsData.data.baocao.forEach(report => {
+                                reportsHtml += `
+                                    <tr class="report-row" style="cursor: pointer; transition: background-color 0.3s;" 
+                                        onmouseover="this.style.backgroundColor='#e3f2fd'" 
+                                        onmouseout="this.style.backgroundColor=''"
+                                        onclick="handleReportRowClick(this, '${report._id}', '${encodeURIComponent(JSON.stringify(report))}')">
+                                        <td>${new Date(report.thoigian).toLocaleString()}</td>
+                                        <td>${report.thietmang}</td>
+                                        <td>${report.bithuong}</td>
+                                        <td>${report.trangthai}</td>
+                                        <td>
+                                            ${report.linkbaocao ? 
+                                                `<a href="${report.linkbaocao}" target="_blank" onclick="event.stopPropagation()">
+                                                    <i class="fas fa-external-link-alt"></i>
+                                                </a>` : 
+                                                'Không có'
+                                            }
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            reportsHtml += `
+                                    </tbody>
+                                </table>
+                            `;
+                            document.getElementById('reportData').innerHTML = reportsHtml;
+                        }
+                    }
+                } else {
+                    showMessage(data.message || 'Có lỗi xảy ra khi xóa báo cáo!', 'error');
+                }
+            } catch (error) {
+                console.error('Lỗi khi xóa báo cáo:', error);
+                showMessage('Đã xảy ra lỗi khi kết nối với máy chủ!', 'error');
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>

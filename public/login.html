@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="login-page">
+    <a href="index.html" class="home-button">
+        <i class="fas fa-home"></i>
+        Trang chủ
+    </a>
+
+    <div class="login-container">
+        <h2>ĐĂNG NHẬP</h2>
+        <form id="loginForm">
+            
+            <div class="input-container">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" placeholder="Tên đăng nhập" required>
+            </div>
+    
+            
+
+            
+            <div class="input-container">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Mật khẩu" required>
+                <i class="far fa-eye" id="togglePassword" style="cursor: pointer;"></i>
+            </div>
+    
+           
+
+            
+
+            <button type="submit">Đăng nhập</button>
+
+            
+            <a href="forgetpassword.html" class="forgot-password">Bạn quên mật khẩu?</a>
+            <a href="register.html" class="create-account">Tạo tài khoản mới</a>
+
+        
+            
+        </form>
+        <p id="loginMessage" style="font-weight: bold;"></p> <!-- Hiển thị thông báo -->
+
+    </div>
+
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <div class="error-icon">
+                <i class="fas fa-times"></i>
+            </div>
+            <h3>Đăng nhập thất bại</h3>
+            <p id="errorMessage">Username này không tồn tại trong hệ thống</p>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3>Đăng nhập thành công</h3>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
