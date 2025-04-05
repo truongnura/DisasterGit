@@ -28,7 +28,8 @@ mongoose.connect(MONGODB_URI, {
 // Define Schemas
 const taikhoanSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    role: { type: String, required: true }
 }, { collection: 'taikhoan' });
 
 const thongtinSchema = new mongoose.Schema({
@@ -36,7 +37,7 @@ const thongtinSchema = new mongoose.Schema({
     hoten: { type: String, required: true },
     diachi: { type: String, required: true },
     ngaysinh: { type: Date, required: true },
-    email: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
     sdt: { type: String, required: true }
 }, { collection: 'thongtin' });
 
@@ -285,61 +286,57 @@ app.get('/disasters/:id', async (req, res) => {
     }
 });
 
-// API đăng ký tài khoản
+// Endpoint đăng ký tài khoản
 app.post('/register', async (req, res) => {
-    // Bắt đầu session cho transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-        // Kiểm tra xem username đã tồn tại chưa
-        const existingUser = await TaiKhoan.findOne({ username: req.body.username }).session(session);
+        const { taikhoan, thongtin } = req.body;
+
+        // Kiểm tra username đã tồn tại chưa
+        const existingUser = await TaiKhoan.findOne({ username: taikhoan.username });
         if (existingUser) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại!' });
         }
 
-        // Kiểm tra xem email đã được sử dụng chưa
-        const existingEmail = await ThongTin.findOne({ email: req.body.email }).session(session);
+        // Kiểm tra email đã tồn tại chưa
+        const existingEmail = await ThongTin.findOne({ email: thongtin.email });
         if (existingEmail) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(400).json({ message: 'Email đã được sử dụng!' });
         }
 
         // Tạo tài khoản mới
-        const taikhoan = new TaiKhoan({
-            username: req.body.username,
-            password: req.body.password
+        const newTaiKhoan = new TaiKhoan({
+            username: taikhoan.username,
+            password: taikhoan.password,
+            role: taikhoan.role
         });
+        await newTaiKhoan.save();
 
-        // Tạo thông tin người dùng mới
-        const thongtin = new ThongTin({
-            username: req.body.username,
-            hoten: req.body.hoten,
-            diachi: req.body.diachi,
-            ngaysinh: new Date(req.body.ngaysinh),
-            email: req.body.email,
-            sdt: req.body.sdt
+        // Tạo thông tin người dùng
+        const newThongTin = new ThongTin({
+            hoten: thongtin.hoten,
+            diachi: thongtin.diachi,
+            ngaysinh: thongtin.ngaysinh,
+            email: thongtin.email,
+            sdt: thongtin.sdt,
+            username: thongtin.username
         });
+        await newThongTin.save();
 
-        // Lưu cả hai document trong transaction
-        await taikhoan.save({ session });
-        await thongtin.save({ session });
-
-        // Commit transaction
-        await session.commitTransaction();
-        session.endSession();
-
-        res.status(201).json({ message: 'Đăng ký thành công!' });
+        res.status(201).json({ 
+            success: true,
+            message: 'Đăng ký thành công!'
+        });
     } catch (error) {
-        // Nếu có lỗi, rollback transaction
-        await session.abortTransaction();
-        session.endSession();
-
-        console.error('Lỗi khi đăng ký:', error);
-        res.status(500).json({ message: 'Có lỗi xảy ra khi đăng ký!' });
+        console.error('Lỗi đăng ký:', error);
+        if (error.code === 11000) { // MongoDB duplicate key error
+            if (error.keyPattern.email) {
+                return res.status(400).json({ message: 'Email đã được sử dụng!' });
+            }
+            if (error.keyPattern.username) {
+                return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại!' });
+            }
+        }
+        res.status(500).json({ message: 'Lỗi server khi đăng ký!' });
     }
 });
 
@@ -347,7 +344,7 @@ app.post('/register', async (req, res) => {
 app.post('/reset-password', async (req, res) => {
     console.log('Yêu cầu đặt lại mật khẩu:', req.body);
     
-    const { email, phone } = req.body;
+    const { email, sdt } = req.body;
     
     try {
         // Tìm thông tin người dùng từ email
@@ -359,7 +356,7 @@ app.post('/reset-password', async (req, res) => {
         }
         
         // Kiểm tra số điện thoại
-        if (userInfo.sdt !== phone) {
+        if (userInfo.sdt !== sdt) {
             console.log('Số điện thoại không khớp');
             return res.json({ success: false, message: 'Số điện thoại không khớp với tài khoản' });
         }
@@ -455,32 +452,31 @@ app.post('/change-password', async (req, res) => {
 // API cập nhật báo cáo
 app.put('/reports/:id', async (req, res) => {
     try {
-        const baocao = await BaoCao.findById(req.params.id);
-        if (!baocao) {
-            return res.status(404).json({
-                success: false,
-                message: 'Không tìm thấy báo cáo'
+        const { thietmang, bithuong, trangthai, linkbaocao } = req.body;
+        
+        const updatedReport = await BaoCao.findByIdAndUpdate(
+            req.params.id,
+            { thietmang, bithuong, trangthai, linkbaocao },
+            { new: true }
+        );
+
+        if (!updatedReport) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Không tìm thấy báo cáo!' 
             });
         }
 
-        // Cập nhật thông tin
-        baocao.thietmang = req.body.thietmang;
-        baocao.bithuong = req.body.bithuong;
-        baocao.trangthai = req.body.trangthai;
-        baocao.linkbaocao = req.body.linkbaocao;
-
-        await baocao.save();
-
-        res.json({
-            success: true,
-            message: 'Cập nhật báo cáo thành công',
-            data: baocao
+        res.json({ 
+            success: true, 
+            message: 'Cập nhật báo cáo thành công!',
+            report: updatedReport
         });
     } catch (error) {
         console.error('Lỗi khi cập nhật báo cáo:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Đã xảy ra lỗi khi cập nhật báo cáo'
+        res.status(500).json({ 
+            success: false, 
+            message: 'Lỗi khi cập nhật báo cáo!' 
         });
     }
 });

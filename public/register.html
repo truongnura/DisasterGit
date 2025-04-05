@@ -1,74 +1,367 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng ký tài khoản</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: url('backgroundlogin.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .Register-container {
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            padding: 20px;
+            margin: 20px auto;
+            height: auto;
+            box-sizing: border-box;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .forget-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .forget-modal.show {
+            display: block;
+        }
+
+        .forget-modal-content {
+            background: #2c3338;
+            color: white;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .forget-button {
+            background: #39c0ed;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 200px;
+            margin-top: 20px;
+        }
+
+        .forget-button:hover {
+            background: #39c0ed;
+        }
+
+        .success-title {
+            color: #39c0ed;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            font-size: 18px;
+            color: #fff;
+            margin: 15px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal h3 {
+            margin: 10px 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        /* Success Checkmark */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            margin-bottom: 20px;
+        }
+
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #4CAF50;
+        }
+
+        .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+
+        .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+
+        .check-icon::before, .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: #FFFFFF;
+            transform: rotate(-45deg);
+        }
+
+        .icon-line {
+            height: 5px;
+            background-color: #4CAF50;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+
+        .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+
+        .icon-circle {
+            top: -4px;
+            left: -4px;
+            z-index: 10;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            position: absolute;
+            box-sizing: content-box;
+            border: 4px solid rgba(76, 175, 80, .5);
+        }
+
+        .icon-fix {
+            top: 8px;
+            width: 5px;
+            left: 26px;
+            z-index: 1;
+            height: 85px;
+            position: absolute;
+            transform: rotate(-45deg);
+            background-color: white;
+        }
+
+        @keyframes rotate-circle {
+            0% {
+                transform: rotate(-45deg);
+            }
+            5% {
+                transform: rotate(-45deg);
+            }
+            12% {
+                transform: rotate(-405deg);
+            }
+            100% {
+                transform: rotate(-405deg);
+            }
+        }
+
+        @keyframes icon-line-tip {
+            0% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            54% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            70% {
+                width: 50px;
+                left: -8px;
+                top: 37px;
+            }
+            84% {
+                width: 17px;
+                left: 21px;
+                top: 48px;
+            }
+            100% {
+                width: 25px;
+                left: 14px;
+                top: 46px;
+            }
+        }
+
+        @keyframes icon-line-long {
+            0% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            65% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            84% {
+                width: 55px;
+                right: 0px;
+                top: 35px;
+            }
+            100% {
+                width: 47px;
+                right: 8px;
+                top: 38px;
+            }
+        }
+
+        #successModal .modal-content {
+            border: 2px solid #39c0ed;
+        }
+
+        #errorModal .modal-content {
+            border: 2px solid #ff4444;
+        }
+    </style>
 </head>
+
 <body class="login-page">
     <a href="index.html" class="home-button">
         <i class="fas fa-home"></i>
         Trang chủ
     </a>
 
-    <div class="login-container" style="height: auto; width: 400px; padding: 40px;">
-        <h2>Đăng ký tài khoản</h2>
+    <div class="Register-container">
+        <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
         <form id="registerForm">
-            <!-- Họ và tên -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-user"></i>
-                <input type="text" id="hoten" placeholder="Họ và tên" required>
+                <input type="text" id="hoten" name="hoten" placeholder="Họ và tên" required>
             </div>
 
-            <!-- Địa chỉ -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-home"></i>
-                <input type="text" id="diachi" placeholder="Địa chỉ" required>
+                <input type="text" id="diachi" name="diachi" placeholder="Địa chỉ" required>
             </div>
 
-            <!-- Ngày sinh -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-calendar"></i>
                 <input type="date" id="ngaysinh" name="ngaysinh" required>
             </div>
 
-            <!-- Username -->
-            <div class="input-container">
-                <i class="fas fa-user-circle"></i>
-                <input type="text" id="username" placeholder="Tên đăng nhập" required>
+            <div class="inputregister-container">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" name="username" placeholder="Tên đăng nhập" required>
             </div>
 
-            <!-- Password -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="password" placeholder="Mật khẩu" required>
-                <i class="far fa-eye" id="togglePassword" style="cursor: pointer;"></i>
+                <input type="password" id="password" name="password" placeholder="Mật khẩu" required>
+                <i class="far fa-eye" id="togglePassword"></i>
             </div>
 
-            <!-- Confirm Password -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu" required>
-                <i class="far fa-eye" id="toggleConfirmPassword" style="cursor: pointer;"></i>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+                <i class="far fa-eye" id="toggleConfirmPassword"></i>
             </div>
 
-            <!-- Email -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="email" placeholder="Email" required>
+                <input type="email" id="email" name="email" placeholder="Email" required>
             </div>
 
-            <!-- Số điện thoại -->
-            <div class="input-container">
+            <div class="inputregister-container">
                 <i class="fas fa-phone"></i>
-                <input type="tel" id="sdt" placeholder="Số điện thoại" required>
+                <input type="tel" id="sdt" name="sdt" placeholder="Số điện thoại" required>
             </div>
 
-            <button type="submit">Đăng ký</button>
+            <div style="display: flex; justify-content: center; width: 100%;">
+                <button type="submit" style="width: 60%; margin-top: 20px;">Đăng ký</button>
+            </div>
         </form>
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 20px;text-align: center;">
             <a href="login.html" style="color: #fff; text-decoration: none;">Đã có tài khoản? Đăng nhập ngay</a>
         </div>
     </div>
@@ -87,16 +380,26 @@
     <!-- Modal thông báo thành công -->
     <div id="successModal" class="modal">
         <div class="modal-content">
-            <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
+            <div class="success-checkmark">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                </div>
             </div>
-            <h3>Thành công</h3>
-            <p>Đăng ký tài khoản thành công!</p>
+            <h3>Đăng ký thành công</h3>
+        </div>
+    </div>
+
+    <div id="messageModal" class="forget-modal">
+        <div class="forget-modal-content">
+            <div id="messageText"></div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('registerForm');
             const togglePassword = document.getElementById('togglePassword');
             const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
@@ -106,20 +409,20 @@
             const successModal = document.getElementById('successModal');
 
             // Xử lý hiển thị/ẩn mật khẩu
-            togglePassword.addEventListener('click', function() {
+            togglePassword.addEventListener('click', function () {
                 const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
                 password.setAttribute('type', type);
                 this.className = type === 'password' ? 'far fa-eye' : 'far fa-eye-slash';
             });
 
-            toggleConfirmPassword.addEventListener('click', function() {
+            toggleConfirmPassword.addEventListener('click', function () {
                 const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
                 confirmPassword.setAttribute('type', type);
                 this.className = type === 'password' ? 'far fa-eye' : 'far fa-eye-slash';
             });
 
             // Xử lý đăng ký
-            form.addEventListener('submit', async function(e) {
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 // Kiểm tra mật khẩu khớp nhau
@@ -143,16 +446,20 @@
                 }
 
                 const formData = {
-                    hoten: document.getElementById('hoten').value,
-                    diachi: document.getElementById('diachi').value,
-                    ngaysinh: document.getElementById('ngaysinh').value,
-                    username: document.getElementById('username').value,
-                    password: password.value,
-                    email: document.getElementById('email').value,
-                    sdt: document.getElementById('sdt').value
+                    taikhoan: {
+                        username: document.getElementById('username').value,
+                        password: password.value,
+                        role: 'user'
+                    },
+                    thongtin: {
+                        hoten: document.getElementById('hoten').value,
+                        diachi: document.getElementById('diachi').value,
+                        ngaysinh: document.getElementById('ngaysinh').value,
+                        email: document.getElementById('email').value,
+                        sdt: document.getElementById('sdt').value,
+                        username: document.getElementById('username').value
+                    }
                 };
-
-                console.log('Dữ liệu gửi đi:', formData);
 
                 try {
                     const response = await fetch('/register', {
@@ -164,10 +471,13 @@
                     });
 
                     const data = await response.json();
-                    console.log('Phản hồi từ server:', data);
 
-                    if (response.ok) {
-                        showSuccess();
+                    if (data.success) {
+                        // Hiển thị modal thành công
+                        const successModal = document.getElementById('successModal');
+                        successModal.classList.add('show');
+                        
+                        // Chuyển hướng sau 1.5 giây
                         setTimeout(() => {
                             window.location.href = 'login.html';
                         }, 1500);
@@ -176,11 +486,12 @@
                     }
                 } catch (error) {
                     console.error('Lỗi:', error);
-                    showError('Có lỗi xảy ra khi đăng ký!');
+                    showError('Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau.');
                 }
             });
 
             function showError(message) {
+                const errorModal = document.getElementById('errorModal');
                 document.getElementById('errorMessage').textContent = message;
                 errorModal.classList.add('show');
                 setTimeout(() => {
@@ -188,16 +499,9 @@
                 }, 2000);
             }
 
-            function showSuccess() {
-                successModal.classList.add('show');
-                setTimeout(() => {
-                    successModal.classList.remove('show');
-                }, 1500);
-            }
-
-            document.getElementById('ngaysinh').addEventListener('input', function(e) {
+            document.getElementById('ngaysinh').addEventListener('input', function (e) {
                 let value = e.target.value;
-                
+
                 // Tự động thêm dấu / sau khi nhập đủ 2 số
                 if (value.length === 2 && !value.includes('/')) {
                     e.target.value = value + '/';
@@ -205,7 +509,7 @@
                 if (value.length === 5 && value.split('/').length === 2) {
                     e.target.value = value + '/';
                 }
-                
+
                 // Giới hạn độ dài tối đa là 10 ký tự (dd/mm/yyyy)
                 if (value.length > 10) {
                     e.target.value = value.slice(0, 10);
@@ -215,28 +519,37 @@
             // Hàm kiểm tra ngày hợp lệ
             function isValidDate(dateStr) {
                 if (!/^(\d{2})\/(\d{2})\/(\d{4})$/.test(dateStr)) return false;
-                
+
                 const [day, month, year] = dateStr.split('/').map(Number);
                 const date = new Date(year, month - 1, day);
-                
+
                 return date.getDate() === day &&
-                       date.getMonth() === month - 1 &&
-                       date.getFullYear() === year &&
-                       year >= 1900 &&
-                       year <= new Date().getFullYear();
+                    date.getMonth() === month - 1 &&
+                    date.getFullYear() === year &&
+                    year >= 1900 &&
+                    year <= new Date().getFullYear();
             }
 
             // Thêm validation cho form
-            document.getElementById('registerForm').addEventListener('submit', function(e) {
+            document.getElementById('registerForm').addEventListener('submit', function (e) {
                 const ngaysinh = document.getElementById('ngaysinh').value;
-                
+
                 if (!isValidDate(ngaysinh)) {
                     e.preventDefault();
                     showErrorModal('Lỗi đăng ký', 'Vui lòng nhập ngày sinh hợp lệ theo định dạng dd/mm/yyyy');
                     return false;
                 }
             });
+
+            // Đóng modal khi click bên ngoài
+            window.onclick = function(event) {
+                const modal = document.getElementById('messageModal');
+                if (event.target == modal) {
+                    modal.classList.remove('show');
+                }
+            }
         });
     </script>
 </body>
-</html> 
+
+</html>
