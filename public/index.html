@@ -310,26 +310,43 @@
         };
 
         async function fetchDisasters() {
-            const res = await fetch('http://192.166.13.100:3000/disasters');
+            try {
+                const res = await fetch('/disasters');
+                if (!res.ok) {
+                    throw new Error('Không thể lấy dữ liệu thiên tai');
+                }
             const data = await res.json();
+                const dataElement = document.getElementById('data');
+                if (!dataElement) {
+                    console.error('Không tìm thấy phần tử data');
+                    return;
+                }
+                
             let rows = '';
-            data.forEach((d, index) => {
-                const date = new Date(d.thoigian);
-                const formattedDate = date.toLocaleDateString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
+                data.forEach((d, index) => {
+                    const date = new Date(d.thoigian);
+                    const formattedDate = date.toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
 
-                rows += `<tr onclick="showReport('${d.ID}')" style="cursor: pointer;">
-                    <td>${index + 1}</td>
+                    rows += `<tr onclick="showReport('${d.ID}')" style="cursor: pointer;">
+                        <td>${index + 1}</td>
                     <td>${d.diachi}</td>
-                    <td>${formattedDate}</td>
+                        <td>${formattedDate}</td>
                     <td>${d.mucdo}</td>
                     <td>${d.loaithientai}</td>
                 </tr>`;
             });
-            document.getElementById('data').innerHTML = rows;
+                dataElement.innerHTML = rows;
+            } catch (error) {
+                console.error('Lỗi khi lấy dữ liệu thiên tai:', error);
+                const dataElement = document.getElementById('data');
+                if (dataElement) {
+                    dataElement.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Không thể tải dữ liệu thiên tai</td></tr>';
+                }
+            }
         }
 
         let isEditMode = false;
@@ -451,14 +468,12 @@
                     // Hiển thị modal
                     document.getElementById('editDisasterModal').classList.add('show');
                 } catch (error) {
-                    console.error('Lỗi khi lấy thông tin thiên tai:', error);
                     alert('Có lỗi xảy ra khi lấy thông tin thiên tai');
                 }
                 return;
             }
 
             try {
-                console.log('Đang lấy thông tin cho thiên tai ID:', thientaiId);
                 const response = await fetch(`/reports/${thientaiId}`);
                 const data = await response.json();
 
@@ -532,7 +547,6 @@
                 window.isDeleteReportMode = false;
 
             } catch (error) {
-                console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
                 alert('Có lỗi xảy ra khi lấy thông tin báo cáo: ' + error.message);
             }
         }
@@ -1621,7 +1635,6 @@
 
         async function deleteReport(reportId) {
             try {
-                console.log('Đang xóa báo cáo với ID:', reportId);
                 const response = await fetch(`/reports/${reportId}`, {
                     method: 'DELETE',
                     headers: {
@@ -1637,7 +1650,6 @@
                     
                     // Lấy ID thiên tai trước khi cập nhật giao diện
                     const thientaiId = document.querySelector('#reportModal h2').dataset.thientaiId;
-                    console.log('Cập nhật báo cáo cho thiên tai ID:', thientaiId);
                     
                     // Hiển thị thông báo thành công
                     showMessage('Xóa báo cáo thành công!', 'success');
@@ -1647,66 +1659,69 @@
                     const reportsData = await reportsResponse.json();
                     
                     if (reportsData.success) {
-                        // Cập nhật lại bảng báo cáo
-                        const reportContent = document.querySelector('#reportContent');
+                        let reportsHtml = '';
+                        
                         if (reportsData.data.baocao.length === 0) {
-                            reportContent.innerHTML = `
-                                <div class="no-reports">
-                                    <p>Chưa có báo cáo nào cho thiên tai này.</p>
-                                    <button onclick="showAddReportModal()" class="add-report-btn">
-                                        <i class="fas fa-plus"></i> Thêm Báo Cáo
-                                    </button>
-                                </div>
+                            reportsHtml = `
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 20px;">
+                                        <p>Chưa có báo cáo nào cho thiên tai này.</p>
+                                        <button onclick="showAddReportModal('${thientaiId}')" class="add-report-btn">
+                                            <i class="fas fa-plus"></i> Thêm Báo Cáo
+                                        </button>
+                                    </td>
+                                </tr>
                             `;
                         } else {
-                            let reportsHtml = `
-                                <table class="report-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Thời Gian</th>
-                                            <th>Tử Vong</th>
-                                            <th>Bị Thương</th>
-                                            <th>Trạng Thái</th>
-                                            <th>Báo Cáo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                            `;
-                            
                             reportsData.data.baocao.forEach(report => {
                                 reportsHtml += `
                                     <tr class="report-row" style="cursor: pointer; transition: background-color 0.3s;" 
                                         onmouseover="this.style.backgroundColor='#e3f2fd'" 
                                         onmouseout="this.style.backgroundColor=''"
                                         onclick="handleReportRowClick(this, '${report._id}', '${encodeURIComponent(JSON.stringify(report))}')">
-                                        <td>${new Date(report.thoigian).toLocaleString()}</td>
+                                        <td>${new Date(report.thoigian).toLocaleString('vi-VN', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}</td>
                                         <td>${report.thietmang}</td>
                                         <td>${report.bithuong}</td>
                                         <td>${report.trangthai}</td>
-                                        <td>
-                                            ${report.linkbaocao ? 
-                                                `<a href="${report.linkbaocao}" target="_blank" onclick="event.stopPropagation()">
-                                                    <i class="fas fa-external-link-alt"></i>
-                                                </a>` : 
-                                                'Không có'
-                                            }
-                                        </td>
+                                        <td>${report.linkbaocao ? `<a href="${report.linkbaocao}" target="_blank" onclick="event.stopPropagation()">Xem báo cáo</a>` : 'Không có'}</td>
                                     </tr>
                                 `;
                             });
-                            
-                            reportsHtml += `
-                                    </tbody>
-                                </table>
-                            `;
-                            document.getElementById('reportData').innerHTML = reportsHtml;
+
+                            // Thêm các nút chức năng ở cuối bảng nếu đã đăng nhập
+                            if (localStorage.getItem('username')) {
+                                reportsHtml += `
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 20px;">
+                                            <div style="display: flex; justify-content: center; gap: 15px;">
+                                                <button onclick="showAddReportModal('${thientaiId}')" class="action-button add">
+                                                    <i class="fas fa-plus"></i> Thêm báo cáo
+                                                </button>
+                                                <button onclick="showEditReportMode()" class="action-button edit">
+                                                    <i class="fas fa-edit"></i> Sửa báo cáo
+                                                </button>
+                                                <button onclick="showDeleteReportMode()" class="action-button delete">
+                                                    <i class="fas fa-trash"></i> Xóa báo cáo
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>`;
+                            }
                         }
+                        
+                        // Cập nhật bảng báo cáo
+                        document.getElementById('reportData').innerHTML = reportsHtml;
                     }
                 } else {
                     showMessage(data.message || 'Có lỗi xảy ra khi xóa báo cáo!', 'error');
                 }
             } catch (error) {
-                console.error('Lỗi khi xóa báo cáo:', error);
                 showMessage('Đã xảy ra lỗi khi kết nối với máy chủ!', 'error');
             }
         }

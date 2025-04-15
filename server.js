@@ -519,8 +519,12 @@ app.get('/reports/disaster/:thientaiId', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server đang chạy trên port ${PORT}`);
+const HOST = '0.0.0.0'; // Lắng nghe trên tất cả các interface
+
+app.listen(PORT, HOST, () => {
+    console.log(`Server is running on:`);
+    console.log(`- Local: http://localhost:${PORT}`);
+    console.log(`- Network: http://${require('os').networkInterfaces().eth0?.[0]?.address || 'your-ip'}:${PORT}`);
 });
 
 function handleReportClick(reportId, report) {
